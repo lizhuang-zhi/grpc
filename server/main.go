@@ -1,18 +1,18 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"server/common"
+	"server/repository"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
+
+
 
 func main() {
 	router := gin.Default()
@@ -83,28 +83,35 @@ func main() {
 
 	// 接收数据上报
 	router.POST("/report", func(c *gin.Context) {
-		var reportParam struct {
-			Title string      `json:"name"`
-			Msg   string      `json:"msg"`
-			Data  interface{} `json:"data"`
-		}
+		var reportForm repository.Report
 
-		err := c.BindJSON(&reportParam)
+		err := c.BindJSON(&reportForm)
 		if err != nil {
 			c.JSON(400, gin.H{"error": "无效的 JSON 数据"})
 			return
 		}
 
 		// 存储到文件
-		err = saveToFile(reportParam)
+		_, err = repository.InsertRepot(&reportForm)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+	})
+
+	// 接收数据上报
+	router.GET("/query/report", func(c *gin.Context) {
+		var reportArr []repository.Report
+
+		reportArr, err := repository.GetAllReport()
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
 
 		c.JSON(200, gin.H{
-			"message": "上报成功",
-			"data":    reportParam,
+			"message": "查询成功",
+			"data":    reportArr,
 		})
 	})
 
@@ -118,31 +125,4 @@ func main() {
 	if err := http.ListenAndServe(":12222", router); err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
-}
-
-func saveToFile(data interface{}) error {
-	// 文件路径
-	filePath := "./record.txt"
-
-	// 如果文件不存在，创建文件
-	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		_, err := os.Create(filePath)
-		if err != nil {
-			return fmt.Errorf("无法创建文件: %v", err)
-		}
-	}
-
-	// 将数据转换为 JSON 字符串
-	jsonData, err := json.Marshal(data)
-	if err != nil {
-		return fmt.Errorf("无法转换为 JSON 字符串: %v", err)
-	}
-
-	// 将 JSON 字符串写入文件
-	err = ioutil.WriteFile(filePath, jsonData, 0644)
-	if err != nil {
-		return fmt.Errorf("无法写入文件: %v", err)
-	}
-
-	return nil
 }
