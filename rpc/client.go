@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
+	"net"
 	"net/rpc"
+	"net/rpc/jsonrpc"
 )
 
 type ClientArgs struct {
@@ -12,11 +14,12 @@ type ClientArgs struct {
 
 func main() {
 	// 建立TCP连接
-	client, err := rpc.Dial("tcp", "127.0.0.1:9091")
+	conn, err := net.Dial("tcp", "127.0.0.1:9091")
 	if err != nil {
 		log.Fatal("dialing:", err)
 	}
-
+	// 使用JSON协议
+	client := rpc.NewClientWithCodec(jsonrpc.NewClientCodec(conn))
 	// 同步调用
 	args := &ClientArgs{10, 20}
 	var reply int

@@ -1,3 +1,5 @@
+// rpc 包默认使用的是 gob 协议对传输数据进行序列化/反序列化，比较有局限性。
+// 下面的代码将尝试使用 JSON 协议对传输数据进行序列化与反序列化。
 package main
 
 import (
@@ -5,6 +7,7 @@ import (
 	"log"
 	"net"
 	"net/rpc"
+	"net/rpc/jsonrpc"
 )
 
 type Args struct {
@@ -30,6 +33,7 @@ func main() {
 	for {
 		fmt.Println("Connect.....")  // 启动时会建立一次连接, 然后client请求会再次执行
 		conn, _ := l.Accept()
-		rpc.ServeConn(conn)
+		// 使用JSON协议
+		rpc.ServeCodec(jsonrpc.NewServerCodec(conn))
 	}
 }
