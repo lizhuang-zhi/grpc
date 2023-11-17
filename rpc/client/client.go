@@ -1,38 +1,26 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
-	"net"
-	"net/rpc"
-	"net/rpc/jsonrpc"
+	pb "rpc/client/proto"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
-type ClientArgs struct {
-	X, Y int
-}
-
 func main() {
-	// 建立TCP连接
-	conn, err := net.Dial("tcp", "127.0.0.1:9091")
+	// 连接服务端, 此处禁用安全传输，没有加密和验证
+	conn, err := grpc.Dial("127.0.0.1:9090", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatal("dialing:", err)
+		log.Fatalf("did not connect: %v", err)
 	}
-	// 使用JSON协议
-	client := rpc.NewClientWithCodec(jsonrpc.NewClientCodec(conn))
-	// 同步调用
-	args := &ClientArgs{10, 20}
-	var reply int
-	err = client.Call("ServiceA.Add", args, &reply)
-	if err != nil {
-		log.Fatal("ServiceA.Add error:", err)
-	}
-	fmt.Printf("ServiceA.Add: %d+%d=%d\n", args.X, args.Y, reply)
+	defer conn.Close() // 关闭连接
 
-	// 异步调用
-	var reply2 int
-	divCall := client.Go("ServiceA.Add", args, &reply2, nil)
-	replyCall := <-divCall.Done // 接收调用结果
-	fmt.Println(replyCall.Error)
-	fmt.Println(reply2)
+	// 建立连接
+	client := pb.NewSayHelloClient(conn)
+	// 调用服务端函数
+	resp, _ := client.SayHello(context.Background(), &pb.HelloRequest{RequestName: "Leo God"})
+	fmt.Println(resp.GetResponseMsg())
 }
