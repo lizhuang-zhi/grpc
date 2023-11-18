@@ -3,14 +3,30 @@ syntax = "proto3";
 option go_package = ".;service";
 
 service SayHello {
+    // rpc 服务函数名(参数) 返回 (返回参数)
     rpc SayHello(HelloRequest) returns (HelloResponse) {}
 }
 
+// message关键字: 可以理解为go语言中的结构体
 message HelloRequest {
     string requestName = 1;
     int64 age = 2;
+    // repeated关键字: 消息体中可重复字段, 理解为切片类型
+    repeated string hobbies = 3;
+    // 这里的1, 2, 3是消息号, 随着定义依次累加
 }
 
+// 嵌套消息
 message HelloResponse {
+    message innerResponse {
+        string innerName = 1;
+        int64 innerAge = 2;
+        repeated string innerHobbies = 3;
+    }
     string responseMsg = 1;
+}
+
+message UseInnerResponse {
+    // 使用其他嵌套消息作为字段规则
+    HelloResponse.innerResponse innerStructInfo = 1;
 }
