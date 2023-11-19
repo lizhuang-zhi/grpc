@@ -10,9 +10,33 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+type PerRPCCredentials interface {
+	GetRequestMetaData(ctx context.Context, uri ...string) (map[string]string, error) 
+	RequireTransportSecurity() bool
+}
+
+type ClientTokenAuth struct {
+
+}
+
+func (c ClientTokenAuth) GetRequestMetadata(ctx context.Context, uri ...string) (map[string]string, error) {
+	return map[string]string{
+		"appId": "leo",
+		"appKey": "1123",
+	}, nil
+}
+
+func (c ClientTokenAuth) RequireTransportSecurity() bool {
+	return false
+}
+
 func main() {
+	var opts []grpc.DialOption
+	opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	opts = append(opts, grpc.WithPerRPCCredentials(new(ClientTokenAuth)))
+
 	// 连接服务端, 此处禁用安全传输，没有加密和验证
-	conn, err := grpc.Dial("127.0.0.1:9090", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial("127.0.0.1:9090", opts...)
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
