@@ -2,13 +2,10 @@ package main
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"net"
 	pb "rpc/server/proto"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
 )
 
 // hello server
@@ -17,34 +14,21 @@ type server struct {
 }
 
 func (s *server) SayHello(ctx context.Context, req *pb.HelloRequest) (*pb.HelloResponse, error) {
-	fmt.Println("Hello " + req.RequestName)
-
-	// 获取元数据的信息
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return nil, errors.New("未传入token")
-	}
-
-	var appId string
-	var appKey string
-	if v, ok := md["appId"]; ok {
-		appId = v[0]
-	}
-	if v, ok := md["appKey"]; ok {
-		appKey = v[0]
-	}
-
-	if appId != "leo" || appKey != "123" {
-		fmt.Println("token不正确")
-		return nil, errors.New("token不正确")
-	}
-
 	return &pb.HelloResponse{ResponseMsg: "Hello " + req.RequestName}, nil
+}
+
+	// PlayBall(context.Context, *Tools) (*PlayBallStatus, error)
+func (s *server) PlayBall(ctx context.Context, tools *pb.Tools) (*pb.PlayBallStatus, error) {
+	return &pb.PlayBallStatus{
+		People: "Leo",
+		Site: "篮球场地",
+		Msg: tools.Ball,
+	}, nil
 }
 
 func main() {
 	// 1. 开启端口
-	listen, _ := net.Listen("tcp", ":9090")
+	listen, _ := net.Listen("tcp", ":9092")
 	// 2. 创建grpc服务
 	grpcServer := grpc.NewServer()
 	// 3. 在grpc服务端注册服务

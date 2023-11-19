@@ -10,33 +10,9 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-type PerRPCCredentials interface {
-	GetRequestMetaData(ctx context.Context, uri ...string) (map[string]string, error) 
-	RequireTransportSecurity() bool
-}
-
-type ClientTokenAuth struct {
-
-}
-
-func (c ClientTokenAuth) GetRequestMetadata(ctx context.Context, uri ...string) (map[string]string, error) {
-	return map[string]string{
-		"appId": "leo",
-		"appKey": "1123",
-	}, nil
-}
-
-func (c ClientTokenAuth) RequireTransportSecurity() bool {
-	return false
-}
-
 func main() {
-	var opts []grpc.DialOption
-	opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	opts = append(opts, grpc.WithPerRPCCredentials(new(ClientTokenAuth)))
-
 	// 连接服务端, 此处禁用安全传输，没有加密和验证
-	conn, err := grpc.Dial("127.0.0.1:9090", opts...)
+	conn, err := grpc.Dial("127.0.0.1:9092", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
@@ -45,6 +21,9 @@ func main() {
 	// 建立连接
 	client := pb.NewSayHelloClient(conn)
 	// 调用服务端函数
-	resp, _ := client.SayHello(context.Background(), &pb.HelloRequest{RequestName: "Leo God"})
+	resp, _ := client.SayHello(context.Background(), &pb.HelloRequest{RequestName: "Niu Bi"})
+	ball, _ := client.PlayBall(context.Background(), &pb.Tools{Ball: "一个篮球", Count: 1})
 	fmt.Println(resp.GetResponseMsg())
+	fmt.Println(ball)
+	fmt.Println(ball.GetMsg())
 }

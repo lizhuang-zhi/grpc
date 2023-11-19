@@ -7,12 +7,10 @@
 package service
 
 import (
-	reflect "reflect"
-	sync "sync"
-
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-
+	reflect "reflect"
+	sync "sync"
 )
 
 const (
@@ -22,6 +20,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// message关键字: 可以理解为go语言中的结构体
 type HelloRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -29,6 +28,8 @@ type HelloRequest struct {
 
 	RequestName string `protobuf:"bytes,1,opt,name=requestName,proto3" json:"requestName,omitempty"`
 	Age         int64  `protobuf:"varint,2,opt,name=age,proto3" json:"age,omitempty"`
+	// repeated关键字: 消息体中可重复字段, 理解为切片类型
+	Hobbies []string `protobuf:"bytes,3,rep,name=hobbies,proto3" json:"hobbies,omitempty"` // 这里的1, 2, 3是消息号, 随着定义依次累加
 }
 
 func (x *HelloRequest) Reset() {
@@ -77,6 +78,14 @@ func (x *HelloRequest) GetAge() int64 {
 	return 0
 }
 
+func (x *HelloRequest) GetHobbies() []string {
+	if x != nil {
+		return x.Hobbies
+	}
+	return nil
+}
+
+// 嵌套消息
 type HelloResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -124,21 +133,276 @@ func (x *HelloResponse) GetResponseMsg() string {
 	return ""
 }
 
+type UseInnerResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// 使用其他嵌套消息作为字段规则
+	InnerStructInfo *HelloResponseInnerResponse `protobuf:"bytes,1,opt,name=innerStructInfo,proto3" json:"innerStructInfo,omitempty"`
+}
+
+func (x *UseInnerResponse) Reset() {
+	*x = UseInnerResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_hello_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UseInnerResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UseInnerResponse) ProtoMessage() {}
+
+func (x *UseInnerResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_hello_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UseInnerResponse.ProtoReflect.Descriptor instead.
+func (*UseInnerResponse) Descriptor() ([]byte, []int) {
+	return file_hello_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *UseInnerResponse) GetInnerStructInfo() *HelloResponseInnerResponse {
+	if x != nil {
+		return x.InnerStructInfo
+	}
+	return nil
+}
+
+// PlayBall使用参数
+type Tools struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Ball  string `protobuf:"bytes,1,opt,name=ball,proto3" json:"ball,omitempty"`
+	Count int64  `protobuf:"varint,2,opt,name=count,proto3" json:"count,omitempty"`
+}
+
+func (x *Tools) Reset() {
+	*x = Tools{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_hello_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Tools) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Tools) ProtoMessage() {}
+
+func (x *Tools) ProtoReflect() protoreflect.Message {
+	mi := &file_hello_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Tools.ProtoReflect.Descriptor instead.
+func (*Tools) Descriptor() ([]byte, []int) {
+	return file_hello_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *Tools) GetBall() string {
+	if x != nil {
+		return x.Ball
+	}
+	return ""
+}
+
+func (x *Tools) GetCount() int64 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
+}
+
+type PlayBallStatus struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	People string `protobuf:"bytes,1,opt,name=people,proto3" json:"people,omitempty"`
+	Site   string `protobuf:"bytes,2,opt,name=site,proto3" json:"site,omitempty"`
+	Msg    string `protobuf:"bytes,3,opt,name=msg,proto3" json:"msg,omitempty"`
+}
+
+func (x *PlayBallStatus) Reset() {
+	*x = PlayBallStatus{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_hello_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *PlayBallStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PlayBallStatus) ProtoMessage() {}
+
+func (x *PlayBallStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_hello_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PlayBallStatus.ProtoReflect.Descriptor instead.
+func (*PlayBallStatus) Descriptor() ([]byte, []int) {
+	return file_hello_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *PlayBallStatus) GetPeople() string {
+	if x != nil {
+		return x.People
+	}
+	return ""
+}
+
+func (x *PlayBallStatus) GetSite() string {
+	if x != nil {
+		return x.Site
+	}
+	return ""
+}
+
+func (x *PlayBallStatus) GetMsg() string {
+	if x != nil {
+		return x.Msg
+	}
+	return ""
+}
+
+type HelloResponseInnerResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	InnerName    string   `protobuf:"bytes,1,opt,name=innerName,proto3" json:"innerName,omitempty"`
+	InnerAge     int64    `protobuf:"varint,2,opt,name=innerAge,proto3" json:"innerAge,omitempty"`
+	InnerHobbies []string `protobuf:"bytes,3,rep,name=innerHobbies,proto3" json:"innerHobbies,omitempty"`
+}
+
+func (x *HelloResponseInnerResponse) Reset() {
+	*x = HelloResponseInnerResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_hello_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *HelloResponseInnerResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HelloResponseInnerResponse) ProtoMessage() {}
+
+func (x *HelloResponseInnerResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_hello_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HelloResponseInnerResponse.ProtoReflect.Descriptor instead.
+func (*HelloResponseInnerResponse) Descriptor() ([]byte, []int) {
+	return file_hello_proto_rawDescGZIP(), []int{1, 0}
+}
+
+func (x *HelloResponseInnerResponse) GetInnerName() string {
+	if x != nil {
+		return x.InnerName
+	}
+	return ""
+}
+
+func (x *HelloResponseInnerResponse) GetInnerAge() int64 {
+	if x != nil {
+		return x.InnerAge
+	}
+	return 0
+}
+
+func (x *HelloResponseInnerResponse) GetInnerHobbies() []string {
+	if x != nil {
+		return x.InnerHobbies
+	}
+	return nil
+}
+
 var File_hello_proto protoreflect.FileDescriptor
 
 var file_hello_proto_rawDesc = []byte{
-	0x0a, 0x0b, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x42, 0x0a,
+	0x0a, 0x0b, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x5c, 0x0a,
 	0x0c, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x20, 0x0a,
 	0x0b, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x4e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01,
 	0x28, 0x09, 0x52, 0x0b, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x4e, 0x61, 0x6d, 0x65, 0x12,
 	0x10, 0x0a, 0x03, 0x61, 0x67, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x03, 0x61, 0x67,
-	0x65, 0x22, 0x31, 0x0a, 0x0d, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x12, 0x20, 0x0a, 0x0b, 0x72, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x4d, 0x73,
-	0x67, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x72, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x4d, 0x73, 0x67, 0x32, 0x37, 0x0a, 0x08, 0x53, 0x61, 0x79, 0x48, 0x65, 0x6c, 0x6c, 0x6f,
-	0x12, 0x2b, 0x0a, 0x08, 0x53, 0x61, 0x79, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x12, 0x0d, 0x2e, 0x48,
-	0x65, 0x6c, 0x6c, 0x6f, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x0e, 0x2e, 0x48, 0x65,
-	0x6c, 0x6c, 0x6f, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x0b, 0x5a,
+	0x65, 0x12, 0x18, 0x0a, 0x07, 0x68, 0x6f, 0x62, 0x62, 0x69, 0x65, 0x73, 0x18, 0x03, 0x20, 0x03,
+	0x28, 0x09, 0x52, 0x07, 0x68, 0x6f, 0x62, 0x62, 0x69, 0x65, 0x73, 0x22, 0xa0, 0x01, 0x0a, 0x0d,
+	0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x20, 0x0a,
+	0x0b, 0x72, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x4d, 0x73, 0x67, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x0b, 0x72, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x4d, 0x73, 0x67, 0x1a,
+	0x6d, 0x0a, 0x0d, 0x69, 0x6e, 0x6e, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x12, 0x1c, 0x0a, 0x09, 0x69, 0x6e, 0x6e, 0x65, 0x72, 0x4e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x09, 0x69, 0x6e, 0x6e, 0x65, 0x72, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x1a,
+	0x0a, 0x08, 0x69, 0x6e, 0x6e, 0x65, 0x72, 0x41, 0x67, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03,
+	0x52, 0x08, 0x69, 0x6e, 0x6e, 0x65, 0x72, 0x41, 0x67, 0x65, 0x12, 0x22, 0x0a, 0x0c, 0x69, 0x6e,
+	0x6e, 0x65, 0x72, 0x48, 0x6f, 0x62, 0x62, 0x69, 0x65, 0x73, 0x18, 0x03, 0x20, 0x03, 0x28, 0x09,
+	0x52, 0x0c, 0x69, 0x6e, 0x6e, 0x65, 0x72, 0x48, 0x6f, 0x62, 0x62, 0x69, 0x65, 0x73, 0x22, 0x5a,
+	0x0a, 0x10, 0x55, 0x73, 0x65, 0x49, 0x6e, 0x6e, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x12, 0x46, 0x0a, 0x0f, 0x69, 0x6e, 0x6e, 0x65, 0x72, 0x53, 0x74, 0x72, 0x75, 0x63,
+	0x74, 0x49, 0x6e, 0x66, 0x6f, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x48, 0x65,
+	0x6c, 0x6c, 0x6f, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x2e, 0x69, 0x6e, 0x6e, 0x65,
+	0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x52, 0x0f, 0x69, 0x6e, 0x6e, 0x65, 0x72,
+	0x53, 0x74, 0x72, 0x75, 0x63, 0x74, 0x49, 0x6e, 0x66, 0x6f, 0x22, 0x31, 0x0a, 0x05, 0x54, 0x6f,
+	0x6f, 0x6c, 0x73, 0x12, 0x12, 0x0a, 0x04, 0x62, 0x61, 0x6c, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x04, 0x62, 0x61, 0x6c, 0x6c, 0x12, 0x14, 0x0a, 0x05, 0x63, 0x6f, 0x75, 0x6e, 0x74,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x05, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x22, 0x4e, 0x0a,
+	0x0e, 0x50, 0x6c, 0x61, 0x79, 0x42, 0x61, 0x6c, 0x6c, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12,
+	0x16, 0x0a, 0x06, 0x70, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x06, 0x70, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x73, 0x69, 0x74, 0x65, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x73, 0x69, 0x74, 0x65, 0x12, 0x10, 0x0a, 0x03, 0x6d,
+	0x73, 0x67, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6d, 0x73, 0x67, 0x32, 0x5e, 0x0a,
+	0x08, 0x53, 0x61, 0x79, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x12, 0x2b, 0x0a, 0x08, 0x53, 0x61, 0x79,
+	0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x12, 0x0d, 0x2e, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x1a, 0x0e, 0x2e, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x25, 0x0a, 0x08, 0x50, 0x6c, 0x61, 0x79, 0x42, 0x61,
+	0x6c, 0x6c, 0x12, 0x06, 0x2e, 0x54, 0x6f, 0x6f, 0x6c, 0x73, 0x1a, 0x0f, 0x2e, 0x50, 0x6c, 0x61,
+	0x79, 0x42, 0x61, 0x6c, 0x6c, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x22, 0x00, 0x42, 0x0b, 0x5a,
 	0x09, 0x2e, 0x3b, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
 	0x6f, 0x33,
 }
@@ -155,19 +419,26 @@ func file_hello_proto_rawDescGZIP() []byte {
 	return file_hello_proto_rawDescData
 }
 
-var file_hello_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_hello_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_hello_proto_goTypes = []interface{}{
-	(*HelloRequest)(nil),  // 0: HelloRequest
-	(*HelloResponse)(nil), // 1: HelloResponse
+	(*HelloRequest)(nil),               // 0: HelloRequest
+	(*HelloResponse)(nil),              // 1: HelloResponse
+	(*UseInnerResponse)(nil),           // 2: UseInnerResponse
+	(*Tools)(nil),                      // 3: Tools
+	(*PlayBallStatus)(nil),             // 4: PlayBallStatus
+	(*HelloResponseInnerResponse)(nil), // 5: HelloResponse.innerResponse
 }
 var file_hello_proto_depIdxs = []int32{
-	0, // 0: SayHello.SayHello:input_type -> HelloRequest
-	1, // 1: SayHello.SayHello:output_type -> HelloResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	5, // 0: UseInnerResponse.innerStructInfo:type_name -> HelloResponse.innerResponse
+	0, // 1: SayHello.SayHello:input_type -> HelloRequest
+	3, // 2: SayHello.PlayBall:input_type -> Tools
+	1, // 3: SayHello.SayHello:output_type -> HelloResponse
+	4, // 4: SayHello.PlayBall:output_type -> PlayBallStatus
+	3, // [3:5] is the sub-list for method output_type
+	1, // [1:3] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_hello_proto_init() }
@@ -200,6 +471,54 @@ func file_hello_proto_init() {
 				return nil
 			}
 		}
+		file_hello_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UseInnerResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_hello_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Tools); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_hello_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*PlayBallStatus); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_hello_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*HelloResponseInnerResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -207,7 +526,7 @@ func file_hello_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_hello_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

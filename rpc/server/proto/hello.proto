@@ -5,6 +5,7 @@ option go_package = ".;service";
 service SayHello {
     // rpc 服务函数名(参数) 返回 (返回参数)
     rpc SayHello(HelloRequest) returns (HelloResponse) {}
+    rpc PlayBall(Tools) returns (PlayBallStatus) {}
 }
 
 // message关键字: 可以理解为go语言中的结构体
@@ -29,4 +30,18 @@ message HelloResponse {
 message UseInnerResponse {
     // 使用其他嵌套消息作为字段规则
     HelloResponse.innerResponse innerStructInfo = 1;
+}
+
+/* 
+   PlayBall使用参数
+ */
+message Tools {
+    string ball = 1;
+    int64 count = 2;
+}
+
+message PlayBallStatus {
+    string people = 1;
+    string site = 2;
+    string msg = 3;
 }
