@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
-	pb "rpc/client/proto"
+
+	pb "grpc/protobuf/gen-pb"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -19,6 +20,7 @@ func main() {
 	defer conn.Close() // 关闭连接
 
 	// 建立连接
+
 	client := pb.NewSayHelloClient(conn)
 	gmClient := pb.NewGMServiceClient(conn)
 	// 调用服务端函数
@@ -33,7 +35,7 @@ func main() {
 		Command:  "additem",
 		Args:     "1001,1002,1003",
 		PlayerID: "leo666",
-		// PlayerID: "123",   // 报错
+		// PlayerID: "123", // 报错
 	})
 	fmt.Println(gmResp)
 	fmt.Println(gmResp.GetMsg())

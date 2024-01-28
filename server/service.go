@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
+	pb "grpc/protobuf/gen-pb"
+	"grpc/server/common/gm"
+	"grpc/server/mongo"
 	"net"
-	"rpc/server/common/gm"
-	"rpc/server/mongo"
-	pb "rpc/server/proto"
 
 	"google.golang.org/grpc"
 )
