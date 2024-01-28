@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option go_package = ".;service";
+
+service GMService {
+    // rpc 服务函数名(参数) 返回 (返回参数)
+    rpc ExcuteGM(GMRequest) returns (GMResponse) {}
+}
+
+// message关键字: 可以理解为go语言中的结构体
+message GMRequest {
+    string command = 1;
+    string args = 2;
+    string playerID = 3;
+}
+
+// 嵌套消息
+message GMResponse {
+    int64 code = 1;
+    string msg = 2;
+}
