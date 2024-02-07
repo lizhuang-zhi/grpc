@@ -13,16 +13,18 @@ import (
 
 func main() {
 	// 连接服务端, 此处禁用安全传输，没有加密和验证
-	conn, err := grpc.Dial("127.0.0.1:9092", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	/*
+		grpc.WithBlock(): 阻塞连接，直到连接成功或者超时
+	*/
+	conn, err := grpc.Dial("127.0.0.1:9092", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
 	defer conn.Close() // 关闭连接
 
 	// 建立连接
-
-	client := pb.NewSayHelloClient(conn)
-	gmClient := pb.NewGMServiceClient(conn)
+	client := getSayHelloServiceClient(conn)
+	gmClient := getGMServiceClient(conn)
 	// 调用服务端函数
 	resp, _ := client.SayHello(context.Background(), &pb.HelloRequest{RequestName: "Niu Bi"})
 	ball, _ := client.PlayBall(context.Background(), &pb.Tools{Ball: "一个篮球", Count: 1})
@@ -40,4 +42,12 @@ func main() {
 	fmt.Println(gmResp)
 	fmt.Println(gmResp.GetMsg())
 	fmt.Println(gmResp.GetCode())
+}
+
+func getSayHelloServiceClient(conn *grpc.ClientConn) pb.SayHelloClient {
+	return pb.NewSayHelloClient(conn)
+}
+
+func getGMServiceClient(conn *grpc.ClientConn) pb.GMServiceClient {
+	return pb.NewGMServiceClient(conn)
 }
