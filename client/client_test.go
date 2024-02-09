@@ -10,6 +10,7 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 type dummyGMServiceServer struct {
@@ -40,6 +41,7 @@ func startTestGrpcServer() (*grpc.Server, *bufconn.Listener) {
 	return s, l
 }
 
+// 测试客户端
 func TestExcuteGM(t *testing.T) {
 	s, l := startTestGrpcServer()
 	defer s.GracefulStop() // 优雅关闭服务
@@ -78,4 +80,25 @@ func TestExcuteGM(t *testing.T) {
 	if resp.GetCode() != 0 {
 		t.Fatal("error", resp.GetMsg())
 	}
+}
+
+// protojson: 将json字符串映射到消息类型对象
+func TestTransJson(t *testing.T) {
+	// 模拟json字符串数据
+	jsonString := `{"command": "additem", "args": "1001,1002,1003", "playerID": "leo666"}`
+	gmReq, err := createGMRequest(jsonString)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(gmReq)
+}
+
+// json字符串转结构体
+func createGMRequest(jsonQuery string) (*pb.GMRequest, error) {
+	gm_request := pb.GMRequest{}
+	err := protojson.Unmarshal([]byte(jsonQuery), &gm_request)
+	if err != nil {
+		return nil, err
+	}
+	return &gm_request, nil
 }
