@@ -1,5 +1,10 @@
 package mongo
 
+import (
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+)
+
 type PlayerInfo struct {
 	PlayerID string
 	Level    int32
@@ -8,7 +13,10 @@ type PlayerInfo struct {
 
 func QueryPlayerInfo(playerID string) (*PlayerInfo, error) {
 	if playerID == "" {
-		return nil, nil
+		return nil, status.Error(
+			codes.InvalidArgument,
+			"请输入用户PlayerID参数",
+		)
 	}
 
 	if playerID == "leo666" {

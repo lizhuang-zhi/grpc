@@ -34,10 +34,10 @@ func main() {
 
 	// 调用gm服务端函数
 	gmResp, _ := gmClient.ExcuteGM(context.Background(), &pb.GMRequest{
-		Command:  "additem",
-		Args:     "1001,1002,1003",
-		PlayerID: "leo666",
-		// PlayerID: "123", // 报错
+		Command: "additem",
+		Args:    "1001,1002,1003",
+		// PlayerID: "leo666",
+		PlayerID: "", // 报错
 	})
 	fmt.Println(gmResp)
 	fmt.Println(gmResp.GetMsg())

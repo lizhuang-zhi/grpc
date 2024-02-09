@@ -5,9 +5,12 @@ import (
 	pb "grpc/protobuf/gen-pb"
 	"grpc/server/common/gm"
 	"grpc/server/mongo"
+	"log"
 	"net"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // hello server
@@ -43,8 +46,10 @@ func (s *gmServer) ExcuteGM(ctx context.Context, req *pb.GMRequest) (*pb.GMRespo
 
 	// 查询玩家信息
 	playerInfo, err := mongo.QueryPlayerInfo(playerID)
-	if err != nil {
-		return nil, err
+	statusConvert := status.Convert(err)
+	if statusConvert.Code() != codes.OK {
+		log.Fatalf("QueryPlayerInfo failed: %v - %v\n", statusConvert.Code(), statusConvert.Message())
+		return nil, statusConvert.Err()
 	}
 
 	if playerInfo.Level < 2 {
