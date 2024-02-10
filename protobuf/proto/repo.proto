@@ -1,0 +1,25 @@
+syntax = "proto3";
+import "protobuf/proto/users.proto";  // 注意导入路径不能为”users.proto“
+
+option go_package = ".;service";
+
+service Repo {
+    // 返回stream流
+    rpc GetRepos(RepoRequest) returns (stream RepoGetReply) {}
+}
+
+message RepoRequest {
+    string id = 2;
+    string creator_id = 1;
+}
+
+message Repository {
+    string id = 1;
+    string name = 2;
+    string url = 3;
+    User owner = 4;
+}
+
+message RepoGetReply {
+    Repository repo = 1;
+}

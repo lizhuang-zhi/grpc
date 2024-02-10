@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	pb "grpc/protobuf/gen-pb"
 	"grpc/server/common/gm"
 	"grpc/server/mongo"
@@ -68,6 +69,42 @@ func (s *gmServer) ExcuteGM(ctx context.Context, req *pb.GMRequest) (*pb.GMRespo
 	}, nil
 }
 
+// repo server
+type repoService struct {
+	pb.UnimplementedRepoServer
+}
+
+func (s *repoService) GetRepos(in *pb.RepoRequest, stream pb.Repo_GetReposServer) error {
+	log.Printf("Received request for repo with CreateId: %s Id: %s\n", in.CreatorId, in.Id)
+	repo := pb.Repository{
+		Id: in.Id,
+		Owner: &pb.User{
+			Id:        in.CreatorId,
+			FirstName: "Jane",
+		},
+	}
+	cnt := 1
+
+	for {
+		repo.Name = fmt.Sprintf("repo-%d", cnt)
+		repo.Url = fmt.Sprintf(
+			"https://git.emample.com/test/%s", repo.Name,
+		)
+		r := pb.RepoGetReply{
+			Repo: &repo,
+		}
+		if err := stream.Send(&r); err != nil {
+			return err
+		}
+
+		if cnt >= 5 {
+			break
+		}
+		cnt++
+	}
+	return nil
+}
+
 func main() {
 	// 1. 开启端口
 	listen, _ := net.Listen("tcp", ":9092")
@@ -76,6 +113,7 @@ func main() {
 	// 3. 在grpc服务端注册服务
 	pb.RegisterSayHelloServer(grpcServer, &server{})
 	pb.RegisterGMServiceServer(grpcServer, &gmServer{})
+	pb.RegisterRepoServer(grpcServer, &repoService{})
 	// 4. 启动服务端
 	grpcServer.Serve(listen)
 }
