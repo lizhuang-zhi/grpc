@@ -19,14 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Users_GetUser_FullMethodName = "/Users/GetUser"
+	Users_GetHelp_FullMethodName = "/Users/GetHelp"
 )
 
 // UsersClient is the client API for Users service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UsersClient interface {
-	GetUser(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*UserGetReply, error)
+	GetHelp(ctx context.Context, opts ...grpc.CallOption) (Users_GetHelpClient, error)
 }
 
 type usersClient struct {
@@ -37,20 +37,42 @@ func NewUsersClient(cc grpc.ClientConnInterface) UsersClient {
 	return &usersClient{cc}
 }
 
-func (c *usersClient) GetUser(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*UserGetReply, error) {
-	out := new(UserGetReply)
-	err := c.cc.Invoke(ctx, Users_GetUser_FullMethodName, in, out, opts...)
+func (c *usersClient) GetHelp(ctx context.Context, opts ...grpc.CallOption) (Users_GetHelpClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Users_ServiceDesc.Streams[0], Users_GetHelp_FullMethodName, opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	x := &usersGetHelpClient{stream}
+	return x, nil
+}
+
+type Users_GetHelpClient interface {
+	Send(*UserHelpRequest) error
+	Recv() (*UserHelpReply, error)
+	grpc.ClientStream
+}
+
+type usersGetHelpClient struct {
+	grpc.ClientStream
+}
+
+func (x *usersGetHelpClient) Send(m *UserHelpRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *usersGetHelpClient) Recv() (*UserHelpReply, error) {
+	m := new(UserHelpReply)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 // UsersServer is the server API for Users service.
 // All implementations must embed UnimplementedUsersServer
 // for forward compatibility
 type UsersServer interface {
-	GetUser(context.Context, *UserRequest) (*UserGetReply, error)
+	GetHelp(Users_GetHelpServer) error
 	mustEmbedUnimplementedUsersServer()
 }
 
@@ -58,8 +80,8 @@ type UsersServer interface {
 type UnimplementedUsersServer struct {
 }
 
-func (UnimplementedUsersServer) GetUser(context.Context, *UserRequest) (*UserGetReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
+func (UnimplementedUsersServer) GetHelp(Users_GetHelpServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetHelp not implemented")
 }
 func (UnimplementedUsersServer) mustEmbedUnimplementedUsersServer() {}
 
@@ -74,22 +96,30 @@ func RegisterUsersServer(s grpc.ServiceRegistrar, srv UsersServer) {
 	s.RegisterService(&Users_ServiceDesc, srv)
 }
 
-func _Users_GetUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UserRequest)
-	if err := dec(in); err != nil {
+func _Users_GetHelp_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(UsersServer).GetHelp(&usersGetHelpServer{stream})
+}
+
+type Users_GetHelpServer interface {
+	Send(*UserHelpReply) error
+	Recv() (*UserHelpRequest, error)
+	grpc.ServerStream
+}
+
+type usersGetHelpServer struct {
+	grpc.ServerStream
+}
+
+func (x *usersGetHelpServer) Send(m *UserHelpReply) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *usersGetHelpServer) Recv() (*UserHelpRequest, error) {
+	m := new(UserHelpRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
-	if interceptor == nil {
-		return srv.(UsersServer).GetUser(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Users_GetUser_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UsersServer).GetUser(ctx, req.(*UserRequest))
-	}
-	return interceptor(ctx, in, info, handler)
+	return m, nil
 }
 
 // Users_ServiceDesc is the grpc.ServiceDesc for Users service.
@@ -98,12 +128,14 @@ func _Users_GetUser_Handler(srv interface{}, ctx context.Context, dec func(inter
 var Users_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "Users",
 	HandlerType: (*UsersServer)(nil),
-	Methods: []grpc.MethodDesc{
+	Methods:     []grpc.MethodDesc{},
+	Streams: []grpc.StreamDesc{
 		{
-			MethodName: "GetUser",
-			Handler:    _Users_GetUser_Handler,
+			StreamName:    "GetHelp",
+			Handler:       _Users_GetHelp_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
 	Metadata: "protobuf/proto/users.proto",
 }

@@ -15,23 +15,23 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// hello server
-type server struct {
-	pb.UnimplementedSayHelloServer
-}
+// // hello server
+// type server struct {
+// 	pb.UnimplementedSayHelloServer
+// }
 
-func (s *server) SayHello(ctx context.Context, req *pb.HelloRequest) (*pb.HelloResponse, error) {
-	return &pb.HelloResponse{ResponseMsg: "Hello " + req.RequestName}, nil
-}
+// func (s *server) SayHello(ctx context.Context, req *pb.HelloRequest) (*pb.HelloResponse, error) {
+// 	return &pb.HelloResponse{ResponseMsg: "Hello " + req.RequestName}, nil
+// }
 
-// PlayBall(context.Context, *Tools) (*PlayBallStatus, error)
-func (s *server) PlayBall(ctx context.Context, tools *pb.Tools) (*pb.PlayBallStatus, error) {
-	return &pb.PlayBallStatus{
-		People: "Leo",
-		Site:   "篮球场地",
-		Msg:    tools.Ball,
-	}, nil
-}
+// // PlayBall(context.Context, *Tools) (*PlayBallStatus, error)
+// func (s *server) PlayBall(ctx context.Context, tools *pb.Tools) (*pb.PlayBallStatus, error) {
+// 	return &pb.PlayBallStatus{
+// 		People: "Leo",
+// 		Site:   "篮球场地",
+// 		Msg:    tools.Ball,
+// 	}, nil
+// }
 
 // gm server
 type gmServer struct {
@@ -80,8 +80,8 @@ func (s *repoService) GetRepos(in *pb.RepoRequest, stream pb.Repo_GetReposServer
 	repo := pb.Repository{
 		Id: in.Id,
 		Owner: &pb.User{
-			Id:        in.CreatorId,
-			FirstName: "Jane",
+			Id: in.CreatorId,
+			// FirstName: "Jane",
 		},
 	}
 	cnt := 1
@@ -159,15 +159,50 @@ func (s *repoService) CreateRepo(stream pb.Repo_CreateRepoServer) error {
 	return stream.SendAndClose(&r)
 }
 
+// user 双向流
+type userService struct {
+	pb.UnimplementedUsersServer
+}
+
+func (s *userService) GetHelp(
+	stream pb.Users_GetHelpServer,
+) error {
+	log.Println("Client connected")
+	for {
+		request, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("Request received: %s\n", request.Request)
+
+		response := pb.UserHelpReply{
+			Response: request.Request,
+		}
+
+		err = stream.Send(&response)
+		if err != nil {
+			return err
+		}
+	}
+	log.Println("Client disconnected")
+	return nil
+}
+
 func main() {
 	// 1. 开启端口
 	listen, _ := net.Listen("tcp", ":9092")
 	// 2. 创建grpc服务
 	grpcServer := grpc.NewServer()
 	// 3. 在grpc服务端注册服务
-	pb.RegisterSayHelloServer(grpcServer, &server{})
+	// pb.RegisterSayHelloServer(grpcServer, &server{})
 	pb.RegisterGMServiceServer(grpcServer, &gmServer{})
 	pb.RegisterRepoServer(grpcServer, &repoService{})
+	pb.RegisterUsersServer(grpcServer, &userService{})
 	// 4. 启动服务端
 	grpcServer.Serve(listen)
 }

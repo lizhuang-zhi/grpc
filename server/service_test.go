@@ -19,6 +19,7 @@ func startTestGrpcServer() (*grpc.Server, *bufconn.Listener) {
 	s := grpc.NewServer()
 	pb.RegisterGMServiceServer(s, &gmServer{})
 	pb.RegisterRepoServer(s, &repoService{})
+	pb.RegisterUsersServer(s, &userService{})
 
 	go func() {
 		if err := s.Serve(l); err != nil {
@@ -213,5 +214,57 @@ func TestRepoCreateStreamService(t *testing.T) {
 			expectedRepoUrl,
 			resp.Repo.Url,
 		)
+	}
+}
+
+// 测试双向数据流
+func TestGetHelp(t *testing.T) {
+	_, l := startTestGrpcServer()
+
+	// 创建一个拨号器
+	bufconnDialer := func(ctx context.Context, address string) (net.Conn, error) {
+		return l.Dial()
+	}
+
+	// 创建特殊配置客户端
+	client, err := grpc.DialContext(
+		context.Background(),
+		"",
+		grpc.WithInsecure(),
+		grpc.WithContextDialer(bufconnDialer),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	userClient := pb.NewUsersClient(client)
+	stream, err := userClient.GetHelp(
+		context.Background(),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 1; i <= 5; i++ {
+		msg := fmt.Sprintf("Hello, %d", i)
+		r := pb.UserHelpRequest{
+			Request: msg,
+		}
+		err := stream.Send(&r)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		resp, err := stream.Recv()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if resp.Response != msg {
+			t.Errorf(
+				"Expected Response to be: %s, Got: %s",
+				msg,
+				resp.Response,
+			)
+		}
 	}
 }

@@ -253,6 +253,11 @@ type RepoCreateRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// oneof 关键字用于指定一组成员变量中只能有一个被设置，
+	// 这意味着在 RepoCreateRequest 消息中，
+	// 只能同时设置 context 或 data 中的一个。
+	// 当设置了其中一个成员变量时，另一个成员变量将被清空。
+	//
 	// Types that are assignable to Body:
 	//
 	//	*RepoCreateRequest_Context
