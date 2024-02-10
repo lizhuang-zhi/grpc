@@ -6,6 +6,7 @@ option go_package = ".;service";
 service Repo {
     // 返回stream流
     rpc GetRepos(RepoRequest) returns (stream RepoGetReply) {}
+    rpc CreateRepo(stream RepoCreateRequest) returns (RepoCreateReply) {}
 }
 
 message RepoRequest {
@@ -22,4 +23,21 @@ message Repository {
 
 message RepoGetReply {
     Repository repo = 1;
+}
+
+message RepoContext {
+  string creator_id = 1;
+  string name = 2;
+}
+
+message RepoCreateRequest {
+  oneof body {
+    RepoContext context = 1;
+    bytes data = 2;  
+  }
+}
+
+message RepoCreateReply {
+  Repository repo = 1;
+  int32 size = 2;
 }

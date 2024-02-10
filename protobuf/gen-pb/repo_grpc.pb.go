@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Repo_GetRepos_FullMethodName = "/Repo/GetRepos"
+	Repo_GetRepos_FullMethodName   = "/Repo/GetRepos"
+	Repo_CreateRepo_FullMethodName = "/Repo/CreateRepo"
 )
 
 // RepoClient is the client API for Repo service.
@@ -28,6 +29,7 @@ const (
 type RepoClient interface {
 	// 返回stream流
 	GetRepos(ctx context.Context, in *RepoRequest, opts ...grpc.CallOption) (Repo_GetReposClient, error)
+	CreateRepo(ctx context.Context, opts ...grpc.CallOption) (Repo_CreateRepoClient, error)
 }
 
 type repoClient struct {
@@ -70,12 +72,47 @@ func (x *repoGetReposClient) Recv() (*RepoGetReply, error) {
 	return m, nil
 }
 
+func (c *repoClient) CreateRepo(ctx context.Context, opts ...grpc.CallOption) (Repo_CreateRepoClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Repo_ServiceDesc.Streams[1], Repo_CreateRepo_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &repoCreateRepoClient{stream}
+	return x, nil
+}
+
+type Repo_CreateRepoClient interface {
+	Send(*RepoCreateRequest) error
+	CloseAndRecv() (*RepoCreateReply, error)
+	grpc.ClientStream
+}
+
+type repoCreateRepoClient struct {
+	grpc.ClientStream
+}
+
+func (x *repoCreateRepoClient) Send(m *RepoCreateRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *repoCreateRepoClient) CloseAndRecv() (*RepoCreateReply, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(RepoCreateReply)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // RepoServer is the server API for Repo service.
 // All implementations must embed UnimplementedRepoServer
 // for forward compatibility
 type RepoServer interface {
 	// 返回stream流
 	GetRepos(*RepoRequest, Repo_GetReposServer) error
+	CreateRepo(Repo_CreateRepoServer) error
 	mustEmbedUnimplementedRepoServer()
 }
 
@@ -85,6 +122,9 @@ type UnimplementedRepoServer struct {
 
 func (UnimplementedRepoServer) GetRepos(*RepoRequest, Repo_GetReposServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetRepos not implemented")
+}
+func (UnimplementedRepoServer) CreateRepo(Repo_CreateRepoServer) error {
+	return status.Errorf(codes.Unimplemented, "method CreateRepo not implemented")
 }
 func (UnimplementedRepoServer) mustEmbedUnimplementedRepoServer() {}
 
@@ -120,6 +160,32 @@ func (x *repoGetReposServer) Send(m *RepoGetReply) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _Repo_CreateRepo_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(RepoServer).CreateRepo(&repoCreateRepoServer{stream})
+}
+
+type Repo_CreateRepoServer interface {
+	SendAndClose(*RepoCreateReply) error
+	Recv() (*RepoCreateRequest, error)
+	grpc.ServerStream
+}
+
+type repoCreateRepoServer struct {
+	grpc.ServerStream
+}
+
+func (x *repoCreateRepoServer) SendAndClose(m *RepoCreateReply) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *repoCreateRepoServer) Recv() (*RepoCreateRequest, error) {
+	m := new(RepoCreateRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // Repo_ServiceDesc is the grpc.ServiceDesc for Repo service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -132,6 +198,11 @@ var Repo_ServiceDesc = grpc.ServiceDesc{
 			StreamName:    "GetRepos",
 			Handler:       _Repo_GetRepos_Handler,
 			ServerStreams: true,
+		},
+		{
+			StreamName:    "CreateRepo",
+			Handler:       _Repo_CreateRepo_Handler,
+			ClientStreams: true,
 		},
 	},
 	Metadata: "protobuf/proto/repo.proto",

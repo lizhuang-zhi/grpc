@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"strings"
 	"testing"
 
 	"google.golang.org/grpc"
@@ -121,5 +122,96 @@ func TestRepoStreamService(t *testing.T) {
 			t.Errorf("expected repo name %s, got %s", expectedRepoName, gotRepoName)
 		}
 	}
+}
 
+// 测试客户端流
+func TestRepoCreateStreamService(t *testing.T) {
+	s, l := startTestGrpcServer()
+	defer s.GracefulStop() // 优雅关闭服务
+
+	// 创建一个拨号器
+	bufconnDialer := func(ctx context.Context, address string) (net.Conn, error) {
+		return l.Dial()
+	}
+
+	// 创建特殊配置客户端
+	client, err := grpc.DialContext(
+		context.Background(),
+		"",
+		grpc.WithInsecure(),
+		grpc.WithContextDialer(bufconnDialer),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	repoClient := pb.NewRepoClient(client)
+	stream, err := repoClient.CreateRepo(
+		context.Background(),
+	)
+	if err != nil {
+		t.Fatal("CreateRepo", err)
+	}
+
+	c := pb.RepoCreateRequest_Context{
+		Context: &pb.RepoContext{
+			CreatorId: "user-123",
+			Name:      "test-repo",
+		},
+	}
+
+	r := pb.RepoCreateRequest{
+		Body: &c,
+	}
+
+	err = stream.Send(&r)
+	if err != nil {
+		t.Fatal("StreamSend", err)
+	}
+
+	data := "Arbitrary Data Bytes"
+	repoData := strings.NewReader(data)
+	for {
+		b, err := repoData.ReadByte()
+		if err == io.EOF {
+			break
+		}
+
+		bData := pb.RepoCreateRequest_Data{
+			Data: []byte{b},
+		}
+
+		r := pb.RepoCreateRequest{
+			Body: &bData,
+		}
+
+		err = stream.Send(&r)
+		if err != nil {
+			t.Fatal("StreamSend", err)
+		}
+		l.Close()
+	}
+
+	resp, err := stream.CloseAndRecv()
+	if err != nil {
+		t.Fatal("CloseAndRecv", err)
+	}
+
+	expectedSize := int32(len(data))
+	if resp.Size != expectedSize {
+		t.Errorf(
+			"Expected Repo Created to be: %d bytes Got back: %d",
+			expectedSize,
+			resp.Size,
+		)
+	}
+
+	expectedRepoUrl := "https://git.example.com/user-123/test-repo"
+	if resp.Repo.Url != expectedRepoUrl {
+		t.Errorf(
+			"Expected Repo URL to be: %s, Got: %s",
+			expectedRepoUrl,
+			resp.Repo.Url,
+		)
+	}
 }

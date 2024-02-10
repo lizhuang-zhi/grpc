@@ -6,6 +6,7 @@ import (
 	pb "grpc/protobuf/gen-pb"
 	"grpc/server/common/gm"
 	"grpc/server/mongo"
+	"io"
 	"log"
 	"net"
 
@@ -103,6 +104,59 @@ func (s *repoService) GetRepos(in *pb.RepoRequest, stream pb.Repo_GetReposServer
 		cnt++
 	}
 	return nil
+}
+
+func (s *repoService) CreateRepo(stream pb.Repo_CreateRepoServer) error {
+	var repoContext *pb.RepoContext
+	var data []byte
+
+	for {
+		r, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return status.Error(
+				codes.Unknown,
+				err.Error(),
+			)
+		}
+
+		switch t := r.Body.(type) {
+		case *pb.RepoCreateRequest_Context: // 读取上下文
+			repoContext = r.GetContext()
+		case *pb.RepoCreateRequest_Data: // 读取数据
+			b := r.GetData()
+			data = append(data, b...)
+		case nil:
+			return status.Error(
+				codes.InvalidArgument,
+				"Message doesn't contain context or data",
+			)
+		default:
+			return status.Errorf(
+				codes.FailedPrecondition,
+				"Unexpected message type: %s",
+				t,
+			)
+		}
+	}
+
+	repo := pb.Repository{
+		Name: repoContext.Name,
+		Url: fmt.Sprintf(
+			"https://git.example.com/%s/%s",
+			repoContext.CreatorId,
+			repoContext.Name,
+		),
+	}
+
+	r := pb.RepoCreateReply{
+		Repo: &repo,
+		Size: int32(len(data)),
+	}
+
+	return stream.SendAndClose(&r)
 }
 
 func main() {
