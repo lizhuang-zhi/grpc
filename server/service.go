@@ -123,9 +123,9 @@ func (s *repoService) CreateRepo(stream pb.Repo_CreateRepoServer) error {
 		}
 
 		switch t := r.Body.(type) {
-		case *pb.RepoCreateRequest_Context: // 读取上下文
+		case *pb.RepoCreateRequest_Context: // 其中的上下文类型
 			repoContext = r.GetContext()
-		case *pb.RepoCreateRequest_Data: // 读取数据
+		case *pb.RepoCreateRequest_Data: // 其中的数据类型
 			b := r.GetData()
 			data = append(data, b...)
 		case nil:
