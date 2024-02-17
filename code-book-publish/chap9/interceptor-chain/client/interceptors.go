@@ -61,6 +61,7 @@ func loggingUnaryInterceptor(
 	return err
 }
 
+// 客户端包装流
 type wrappedClientStream struct {
 	grpc.ClientStream
 }
@@ -113,6 +114,7 @@ func loggingStreamingInterceptor(
 		cc, method,
 		opts...,
 	)
+	// 客户端包装流
 	clientStream := wrappedClientStream{
 		ClientStream: stream,
 	}

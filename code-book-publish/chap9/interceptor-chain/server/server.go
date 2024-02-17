@@ -9,9 +9,11 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
 
 	svc "github.com/practicalgo/code/chap9/interceptor-chain/service"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 type userService struct {
@@ -84,8 +86,9 @@ func main() {
 		log.Fatal(err)
 	}
 	s := grpc.NewServer(
+		// 设置拦截器链
 		grpc.ChainUnaryInterceptor(
-			metricUnaryInterceptor,
+			metricUnaryInterceptor, // 链接多个拦截器
 			loggingUnaryInterceptor,
 		),
 		grpc.ChainStreamInterceptor(
@@ -95,4 +98,99 @@ func main() {
 	)
 	registerServices(s)
 	log.Fatal(startServer(s, lis))
+}
+
+// 服务端包装流
+type wrappedServerStream struct {
+	grpc.ServerStream
+}
+
+func (s wrappedServerStream) SendMsg(m interface{}) error {
+	log.Printf("Send msg called: %T", m)
+	return s.ServerStream.SendMsg(m)
+}
+
+func (s wrappedServerStream) RecvMsg(m interface{}) error {
+	log.Printf("Waiting to receive a message: %T", m)
+	return s.ServerStream.RecvMsg(m)
+}
+
+func loggingUnaryInterceptor(
+	ctx context.Context,
+	req interface{},
+	info *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler,
+) (interface{}, error) {
+	resp, err := handler(ctx, req)
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		log.Print("No metadata")
+	}
+	log.Printf("Method:%s, Error:%v, Request-Id:%s",
+		info.FullMethod,
+		err,
+		md.Get("Request-Id"),
+	)
+	return resp, err
+}
+
+func loggingStreamInterceptor(
+	srv interface{},
+	stream grpc.ServerStream,
+	info *grpc.StreamServerInfo,
+	handler grpc.StreamHandler,
+) error {
+	// ***** 服务端包装流 *****
+	// 将原来的(interceptor目录下)stream包装成wrappedServerStream
+	serverStream := wrappedServerStream{
+		ServerStream: stream,
+	}
+	err := handler(srv, serverStream)
+	// ***** 服务端包装流 *****
+
+	ctx := stream.Context()
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		log.Print("No metadata")
+	}
+	log.Printf("Method:%s, Error:%v, Request-Id:%s",
+		info.FullMethod,
+		err,
+		md.Get("Request-Id"),
+	)
+	return err
+}
+
+// 性能监控的拦截器
+func metricUnaryInterceptor(
+	ctx context.Context,
+	req interface{},
+	info *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler,
+) (interface{}, error) {
+	start := time.Now()
+	resp, err := handler(ctx, req)
+	end := time.Now()
+	log.Printf("Method:%s, Duration:%s",
+		info.FullMethod,
+		end.Sub(start),
+	)
+	return resp, err
+}
+
+func metricStreamInterceptor(
+	srv interface{},
+	stream grpc.ServerStream,
+	info *grpc.StreamServerInfo,
+	handler grpc.StreamHandler,
+) error {
+
+	start := time.Now()
+	err := handler(srv, stream)
+	end := time.Now()
+	log.Printf("Method:%s, Duration:%s",
+		info.FullMethod,
+		end.Sub(start),
+	)
+	return err
 }

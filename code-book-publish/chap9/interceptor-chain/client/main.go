@@ -17,10 +17,11 @@ func setupGrpcConn(addr string) (*grpc.ClientConn, error) {
 		context.Background(),
 		addr,
 		grpc.WithInsecure(),
-		grpc.WithBlock(),
+		grpc.WithBlock(), // 阻塞直到连接成功
+		// 设置链接拦截器(对比interceptor目录下setupGrpcConn)
 		grpc.WithChainUnaryInterceptor(
-			loggingUnaryInterceptor,
-			metadataUnaryInterceptor,
+			loggingUnaryInterceptor,  // 链接多个拦截器
+			metadataUnaryInterceptor, // 链接多个拦截器
 		),
 		grpc.WithChainStreamInterceptor(
 			loggingStreamingInterceptor,
