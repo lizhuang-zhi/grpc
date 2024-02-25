@@ -81,7 +81,7 @@ func validateArgs(config config) error {
 func greetUser(w io.Writer, name string, num int) {
 	msg := fmt.Sprintf("Hello, %s!\n", name)
 	for i := 0; i < num; i++ {
-		fmt.Fprintln(w, msg)
+		fmt.Fprint(w, msg)
 	}
 }
 
